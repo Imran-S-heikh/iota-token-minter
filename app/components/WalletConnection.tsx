@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { ConnectButton, useCurrentAccount } from '@iota/dapp-kit';
+import { ConnectButton, useCurrentAccount } from "@iota/dapp-kit";
 
 export function WalletConnection() {
   const currentAccount = useCurrentAccount();
@@ -13,17 +13,18 @@ export function WalletConnection() {
           Testnet
         </span>
       </div>
-      
+
       <div className="flex items-center space-x-4">
         {currentAccount && (
           <div className="text-sm text-gray-600">
-            <span className="font-medium">Connected:</span>{' '}
+            <span className="font-medium">Connected:</span>{" "}
             <span className="font-mono">
-              {currentAccount.address.slice(0, 6)}...{currentAccount.address.slice(-4)}
+              {currentAccount.address.slice(0, 6)}...
+              {currentAccount.address.slice(-4)}
             </span>
           </div>
         )}
-        
+
         <ConnectButton
           connectText="Connect Wallet"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"

@@ -48,7 +48,7 @@ export function OneClickTokenCreator() {
     description: "",
     decimals: 6,
     iconUrl: "",
-    supply: "",
+    supply: "900",
   });
 
   const [isCreating] = useState(false);
