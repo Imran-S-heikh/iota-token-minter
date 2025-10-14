@@ -11,6 +11,7 @@ import {
 } from "@iota/dapp-kit";
 import { Transaction } from "@iota/iota-sdk/transactions";
 import { normalizeIotaAddress } from "@iota/iota-sdk/utils";
+import { CREATE_TOKEN_IOTA_FEE, TREASURY } from "@/constants/fees";
 
 interface TokenConfig {
   name: string;
@@ -142,8 +143,8 @@ export function OneClickTokenCreator() {
 
       const tx = new Transaction();
 
-      // const [fee] = tx.splitCoins(tx.gas, [String(CREATE_TOKEN_SUI_FEE)]);
-      // tx.transferObjects([fee], tx.pure.address(TREASURY));
+      const [fee] = tx.splitCoins(tx.gas, [String(CREATE_TOKEN_IOTA_FEE)]);
+      tx.transferObjects([fee], tx.pure.address(TREASURY));
 
       const [upgradeCap] = tx.publish({
         modules: [[...bytecode]],
