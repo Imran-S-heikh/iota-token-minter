@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getBytecode } from "@/lib/move-template/coin";
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template";
-import { signAndExecute } from "@/utils";
+import { signAndExecute, throwTXIfNotSuccessful, waitForTx } from "@/utils";
 import {
   useCurrentAccount,
   useIotaClient,
@@ -12,6 +12,7 @@ import {
 import { Transaction } from "@iota/iota-sdk/transactions";
 import { normalizeIotaAddress } from "@iota/iota-sdk/utils";
 import { CREATE_TOKEN_IOTA_FEE, TREASURY } from "@/constants/fees";
+import { useNetwork } from "../providers";
 
 interface TokenConfig {
   name: string;
@@ -42,6 +43,7 @@ export function OneClickTokenCreator() {
   const currentAccount = useCurrentAccount();
   const signTransaction = useSignTransaction();
   const iotaClient = useIotaClient();
+  const {network} = useNetwork();
 
   const [tokenConfig, setTokenConfig] = useState<TokenConfig>({
     name: "",
@@ -160,8 +162,30 @@ export function OneClickTokenCreator() {
         iotaClient: iotaClient,
         tx,
         currentAccount,
-        signTransaction,
+        signTransaction
+      }).catch(err=>{
+        console.log(err);
+        return err;
       });
+      
+      throwTXIfNotSuccessful(result);
+      setResult({
+        packageId: result?.effects?.created?.[0]?.reference?.objectId || "Unknown",
+        treasuryCap: result?.effects?.created?.[1]?.reference?.objectId || "Unknown",
+        coinType: `${result.effects?.created?.[0]?.reference?.objectId}::${tokenConfig.symbol}::${tokenConfig.symbol}`,
+        transactionDigest: result.digest,
+        explorerUrl: `https://explorer.iota.org/txblock/${result.digest}?network=${network}`,
+        tokenInfo: {
+          name: tokenConfig.name,
+          symbol: tokenConfig.symbol,
+          description: tokenConfig.description,
+          decimals: tokenConfig.decimals,
+          moduleName: tokenConfig.symbol,
+          structName: tokenConfig.symbol,
+        },
+      });
+      
+      await waitForTx({ iotaClient, digest: result.digest });
 
       console.log(result);
       // @ts-ignore
