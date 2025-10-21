@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getBytecode } from "@/lib/move-template/coin";
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template";
 import { signAndExecute, throwTXIfNotSuccessful, waitForTx } from "@/utils";
 import {
   useCurrentAccount,
+  useCurrentWallet,
   useIotaClient,
   useSignTransaction,
 } from "@iota/dapp-kit";
@@ -13,6 +14,7 @@ import { Transaction } from "@iota/iota-sdk/transactions";
 import { normalizeIotaAddress } from "@iota/iota-sdk/utils";
 import { CREATE_TOKEN_IOTA_FEE, TREASURY } from "@/constants/fees";
 import { useNetwork } from "../providers";
+import useMatchNetwork from "../hooks/useMatchedNetwork";
 
 interface TokenConfig {
   name: string;
@@ -58,6 +60,9 @@ export function OneClickTokenCreator() {
   const [currentStep] = useState("");
   const [result, setResult] = useState<TokenCreationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const matched = useMatchNetwork();
+
+  console.log({ matched });
 
   const handleInputChange = (
     field: keyof TokenConfig,
@@ -397,7 +402,7 @@ export function OneClickTokenCreator() {
 
         <button
           type="submit"
-          disabled={isCreating || !currentAccount}
+          disabled={isCreating || !currentAccount || !matched}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {isCreating ? "Creating & Deploying Token..." : "Create Token"}
@@ -408,6 +413,15 @@ export function OneClickTokenCreator() {
         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-yellow-700 text-center">
             Please connect your wallet to create a token
+          </p>
+        </div>
+      )}
+
+      {!matched && (
+        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-700 text-center">
+            Oops! Looks like your wallet and the app are on different networks.
+            Please switch them to match.
           </p>
         </div>
       )}
