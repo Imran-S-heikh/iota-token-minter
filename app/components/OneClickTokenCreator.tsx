@@ -43,7 +43,7 @@ export function OneClickTokenCreator() {
   const currentAccount = useCurrentAccount();
   const signTransaction = useSignTransaction();
   const iotaClient = useIotaClient();
-  const {network} = useNetwork();
+  const { network } = useNetwork();
 
   const [tokenConfig, setTokenConfig] = useState<TokenConfig>({
     name: "",
@@ -54,7 +54,7 @@ export function OneClickTokenCreator() {
     supply: "900",
   });
 
-  const [isCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [currentStep] = useState("");
   const [result, setResult] = useState<TokenCreationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,68 +69,13 @@ export function OneClickTokenCreator() {
     }));
   };
 
-  // const createToken = async () => {
-  //   if (!currentAccount) {
-  //     setError("Please connect your wallet first");
-  //     return;
-  //   }
-
-  //   if (!tokenConfig.name || !tokenConfig.symbol || !tokenConfig.description) {
-  //     setError("Please fill in all required fields");
-  //     return;
-  //   }
-
-  //   setIsCreating(true);
-  //   setError(null);
-  //   setCurrentStep("Compiling Move package...");
-
-  //   try {
-  //     // Call the deploy API
-  //     const response = await fetch("/api/deploy-token", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         ...tokenConfig,
-  //         userAddress: currentAccount.address,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (data.success) {
-  //       setResult(data);
-  //       setCurrentStep("Token deployed successfully!");
-  //     } else {
-  //       setError(data.error || "Failed to deploy token");
-  //       if (data.details) {
-  //         console.error("Deployment details:", data.details);
-  //       }
-  //     }
-
-  //     setIsCreating(false);
-  //   } catch (error) {
-  //     console.error("Error creating token:", error);
-  //     setError(
-  //       `Error creating token: ${
-  //         error instanceof Error ? error.message : "Unknown error"
-  //       }`
-  //     );
-  //     setIsCreating(false);
-  //     setCurrentStep("");
-  //   }
-  // };
-
-  console.log(currentAccount);
-
   async function createToken() {
     try {
       if (!currentAccount) {
         setError("Please connect your wallet first");
         return;
       }
-
+      setIsCreating(true);
       await initMoveByteCodeTemplate("/move_bytecode_template_bg.wasm");
       const bytecode = await getBytecode({
         description: tokenConfig.description,
@@ -162,16 +107,18 @@ export function OneClickTokenCreator() {
         iotaClient: iotaClient,
         tx,
         currentAccount,
-        signTransaction
-      }).catch(err=>{
+        signTransaction,
+      }).catch((err) => {
         console.log(err);
         return err;
       });
-      
+
       throwTXIfNotSuccessful(result);
       setResult({
-        packageId: result?.effects?.created?.[0]?.reference?.objectId || "Unknown",
-        treasuryCap: result?.effects?.created?.[1]?.reference?.objectId || "Unknown",
+        packageId:
+          result?.effects?.created?.[0]?.reference?.objectId || "Unknown",
+        treasuryCap:
+          result?.effects?.created?.[1]?.reference?.objectId || "Unknown",
         coinType: `${result.effects?.created?.[0]?.reference?.objectId}::${tokenConfig.symbol}::${tokenConfig.symbol}`,
         transactionDigest: result.digest,
         explorerUrl: `https://explorer.iota.org/txblock/${result.digest}?network=${network}`,
@@ -184,7 +131,7 @@ export function OneClickTokenCreator() {
           structName: tokenConfig.symbol,
         },
       });
-      
+
       await waitForTx({ iotaClient, digest: result.digest });
 
       console.log(result);
@@ -192,6 +139,8 @@ export function OneClickTokenCreator() {
     } catch (error: any) {
       console.log(error);
       setError(error?.message || "Failed to create Token");
+    } finally {
+      setIsCreating(false);
     }
   }
 
@@ -314,7 +263,7 @@ export function OneClickTokenCreator() {
             <p className="text-blue-700">{currentStep}</p>
           </div>
           <div className="mt-2 text-sm text-blue-600">
-            This may take 30-60 seconds...
+            This may take 10-20 seconds...
           </div>
         </div>
       )}

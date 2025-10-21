@@ -1,6 +1,6 @@
 import {
   SignAndExecuteArgs,
-  TimedSuiTransactionBlockResponse,
+  TimedIotaTransactionBlockResponse,
   WaitForTxArgs,
 } from "./tx.types";
 import {
@@ -19,12 +19,12 @@ export const throwTXIfNotSuccessful = (
 };
 
 export const signAndExecute = async ({
-  iotaClient: suiClient,
+  iotaClient,
   currentAccount,
   tx,
   signTransaction,
   options,
-}: SignAndExecuteArgs): Promise<TimedSuiTransactionBlockResponse> => {
+}: SignAndExecuteArgs): Promise<TimedIotaTransactionBlockResponse> => {
   const { signature, bytes } = await signTransaction.mutateAsync({
     account: currentAccount,
     transaction: tx,
@@ -32,7 +32,7 @@ export const signAndExecute = async ({
 
   const startTime = Date.now();
 
-  const txResult = await suiClient.executeTransactionBlock({
+  const txResult = await iotaClient.executeTransactionBlock({
     transactionBlock: bytes,
     signature,
     options: {
@@ -40,6 +40,12 @@ export const signAndExecute = async ({
       ...options,
     },
     requestType: "WaitForLocalExecution",
+  });
+
+  await iotaClient.waitForTransaction({
+    digest: txResult.digest,
+    timeout: 20000,
+    pollInterval: 1000,
   });
 
   const endTime = Date.now();
@@ -50,7 +56,7 @@ export const signAndExecute = async ({
       time: Number(txResult.timestampMs) - startTime,
     };
 
-  const txDoubleResponse = await suiClient.getTransactionBlock({
+  const txDoubleResponse = await iotaClient.getTransactionBlock({
     digest: txResult.digest,
     options: { showEffects: true },
   });
@@ -74,7 +80,7 @@ export const waitForTx = async ({
   });
 
 export const getObjectIdsFromTxResult = (
-  txResult: TimedSuiTransactionBlockResponse,
+  txResult: TimedIotaTransactionBlockResponse,
   field: "created" | "mutated"
 ): ReadonlyArray<string> =>
   txResult.effects![field]!.map(

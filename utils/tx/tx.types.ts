@@ -7,7 +7,7 @@ import {
 import { Transaction } from "@iota/iota-sdk/transactions";
 import { WalletAccount } from "@wallet-standard/base";
 
-export interface TimedSuiTransactionBlockResponse
+export interface TimedIotaTransactionBlockResponse
   extends IotaTransactionBlockResponse {
   time: number;
 }
