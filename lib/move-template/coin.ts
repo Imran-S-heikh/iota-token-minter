@@ -112,11 +112,19 @@ export const getBytecode = async (
   updated = updateDescription(updated, info.description ?? "");
   updated = updateUrl(updated, info.imageUrl ?? "");
 
-  const supply = BigNumber(info.totalSupply).times(
-    BigNumber(10).pow(info.decimals || 9)
-  );
+  const decimals = BigInt(info.decimals ?? 9);
+  const MAX_U64 = BigInt("18446744073709551615");
+  const scaledSupply = BigInt(info.totalSupply) * BigInt(10) ** decimals;
 
-  updated = updateMintAmount(updated, supply);
+  if (scaledSupply > MAX_U64) {
+    const maxReadable = MAX_U64 / BigInt(10) ** decimals;
+    throw new Error(
+      `Total supply too large for ${info.decimals} decimals. ` +
+        `Maximum allowed is ${maxReadable.toString()} tokens.`
+    );
+  }
+
+  updated = updateMintAmount(updated, new BigNumber(scaledSupply.toString()));
   updated = updateTreasuryCapRecipient(
     updated,
     info.fixedSupply ? normalizeIotaAddress("0x0") : info.recipient

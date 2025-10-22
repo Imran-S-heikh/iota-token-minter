@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getBytecode } from "@/lib/move-template/coin";
 import initMoveByteCodeTemplate from "@/lib/move-template/move-bytecode-template";
 import { signAndExecute, throwTXIfNotSuccessful, waitForTx } from "@/utils";
 import {
   useCurrentAccount,
-  useCurrentWallet,
   useIotaClient,
   useSignTransaction,
 } from "@iota/dapp-kit";
@@ -62,8 +61,6 @@ export function OneClickTokenCreator() {
   const [error, setError] = useState<string | null>(null);
   const matched = useMatchNetwork();
 
-  console.log({ matched });
-
   const handleInputChange = (
     field: keyof TokenConfig,
     value: string | number
@@ -81,6 +78,8 @@ export function OneClickTokenCreator() {
         return;
       }
       setIsCreating(true);
+      setError(null);
+
       await initMoveByteCodeTemplate("/move_bytecode_template_bg.wasm");
       const bytecode = await getBytecode({
         description: tokenConfig.description,
@@ -113,9 +112,6 @@ export function OneClickTokenCreator() {
         tx,
         currentAccount,
         signTransaction,
-      }).catch((err) => {
-        console.log(err);
-        return err;
       });
 
       throwTXIfNotSuccessful(result);
@@ -138,9 +134,6 @@ export function OneClickTokenCreator() {
       });
 
       await waitForTx({ iotaClient, digest: result.digest });
-
-      console.log(result);
-      // @ts-ignore
     } catch (error: any) {
       console.log(error);
       setError(error?.message || "Failed to create Token");
@@ -251,7 +244,8 @@ export function OneClickTokenCreator() {
           Create Your IOTA Token
         </h2>
         <p className="text-gray-600">
-          One-click token creation and deployment to IOTA testnet
+          One-click token creation and deployment to IOTA{" "}
+          <span className="capitalize">{network}</span>
         </p>
       </div>
 
@@ -328,7 +322,7 @@ export function OneClickTokenCreator() {
             Token Supply *
           </label>
           <input
-            type="text"
+            type="number"
             id="supply"
             value={tokenConfig.supply}
             onChange={(e) => handleInputChange("supply", e.target.value)}
@@ -378,7 +372,6 @@ export function OneClickTokenCreator() {
             <option value={2}>2 (Like cents)</option>
             <option value={6}>6 (Recommended)</option>
             <option value={8}>8 (Like Bitcoin)</option>
-            <option value={18}>18 (Like Ethereum)</option>
           </select>
         </div>
 
