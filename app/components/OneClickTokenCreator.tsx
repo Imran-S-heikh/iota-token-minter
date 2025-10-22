@@ -255,6 +255,23 @@ export function OneClickTokenCreator() {
         </div>
       )}
 
+      {!currentAccount && (
+        <div className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-700 text-center">
+            Please connect your wallet to create a token
+          </p>
+        </div>
+      )}
+
+      {currentAccount && !matched && (
+        <div className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-700 text-center">
+            Oops! Looks like your wallet and the app are on different networks.
+            Please switch them to match.
+          </p>
+        </div>
+      )}
+
       {isCreating && (
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center space-x-3">
@@ -401,23 +418,6 @@ export function OneClickTokenCreator() {
           {isCreating ? "Creating & Deploying Token..." : "Create Token"}
         </button>
       </form>
-
-      {!currentAccount && (
-        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-700 text-center">
-            Please connect your wallet to create a token
-          </p>
-        </div>
-      )}
-
-      {!matched && (
-        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-700 text-center">
-            Oops! Looks like your wallet and the app are on different networks.
-            Please switch them to match.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
